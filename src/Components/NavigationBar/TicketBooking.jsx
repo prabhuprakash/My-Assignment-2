@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useContext, useReducer } from "react";
+import { useContext, useReducer, useState } from "react";
 import styled from "styled-components";
 import { SignInContext } from "../../Context/SignInStatusProvider";
 
@@ -92,6 +92,7 @@ const Option = styled.option``;
 const seatReducer = (seatState, action) => {
   switch (action.type) {
     case "resetSeats":
+      
       return { selectedSeats: [], purchasedSeats: [] };
     case "toggleOn":
       if (!seatState.selectedSeats.includes(action.value)) {
@@ -148,13 +149,20 @@ const TicketBooking = () => {
     selectedSeats: [],
     purchasedSeats: []
   });
-  const seatsPerSection = 60;
-  
   const movielist = useQuery({
     queryKey: ["movie"],
     queryFn: fetchPopularMovies,
     enabled: true
   });
+  const [movieSeats,setMovieSeats]=useState(new Map());
+  const [movieid,setMovieId]=useState('');
+  const seatsPerSection = 60;
+  
+  const updateSetMovieSeats=()=>{
+    const newMap=new Map(movieSeats);
+    newMap.set(movieid,[...seatState.purchasedSeats]);
+    setMovieSeats(newMap);
+  }
 
   if (signInState.action === "LogIn") {
     return (
@@ -163,7 +171,9 @@ const TicketBooking = () => {
       </Container>
     );
   }  
-  
+  console.log(movieSeats);
+  console.log(movieid);
+  console.log(seatState.purchasedSeats);
   return (
     <Container>
       {movielist.isLoading && <p>Loading Movies...</p>}
@@ -175,12 +185,15 @@ const TicketBooking = () => {
           movielist.data.results.length > 0 ? (
             <Select
               name="movies"
-              onChange={() => {
+              onChange={(e) => {
+                setMovieId(e.target.value);
                 dispatchSeatState({
                   type: "resetSeats",
+                  moviePurchasedSeats:movieSeats.has(movieid)?movieSeats.get(movieid):[]
                 });
               }}
             >
+              <Option></Option>
               {movielist.data.results.map((movie) => (
                 <Option key={movie.id} value={movie.id}>
                   {movie.title}
@@ -218,13 +231,13 @@ const TicketBooking = () => {
             </Seats>
             <SelectedSeatsContainer>
               <h3>Selected Seats:</h3>
-<SelectedSeatsList>
+        <SelectedSeatsList>
                 {seatState.selectedSeats.length > 0
                   ? seatState.selectedSeats.join(", ")
                   : "None"}
         </SelectedSeatsList>
         <BuyTicketsButton
-                onClick={() => dispatchSeatState({ type: "purchase" })}
+                onClick={() =>{ dispatchSeatState({ type: "purchase" });updateSetMovieSeats();}}
                 disabled={seatState.selectedSeats.length === 0}
               >
                 Buy Tickets
