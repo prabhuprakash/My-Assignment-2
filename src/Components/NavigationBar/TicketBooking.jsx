@@ -187,7 +187,8 @@ const TicketBooking = () => {
               name="movies"
               onChange={(e) => {
                 const movieId = e.target.value;
-                if (!movieId) {
+                setSelectedMovie(movieId);
+                if (!seatStates[movieId]) {
                   dispatchSeatStates({
                     type: "resetSeats",
                     movieId: movieId
@@ -249,6 +250,9 @@ const TicketBooking = () => {
             <BuyTicketsButton
               onClick={() =>
                 dispatchSeatStates({ type: "purchase", movieId: selectedMovie })
+              }
+              disabled={
+                !selectedMovie || !seatStates[selectedMovie]?.selectedSeats?.length
               }
             >
               Buy Tickets
