@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useContext, useReducer } from "react";
+import { useContext, useReducer ,useState } from "react";
 import styled from "styled-components";
 import { SignInContext } from "../../Context/SignInStatusProvider";
 
@@ -60,19 +60,18 @@ const SeatButton = styled.button`
 
 const SelectedSeatsContainer = styled.div`
   margin-top: 15px;
-  display : flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
   text-align: center;
-  gap:10px;
+  gap: 10px;
 `;
 
 const SelectedSeatsList = styled.div`
   font-size: 16px;
 `;
-const H3=styled.h3`
-  margin:0;
-
-`
+const H3 = styled.h3`
+  margin: 0;
+`;
 const BuyTicketsButton = styled.button`
   padding: 10px 20px;
   background-color: #3498db;
@@ -144,12 +143,23 @@ const fetchPopularMovies = async () => {
 
 const TicketBooking = () => {
   const { signInState } = useContext(SignInContext);
-  const [seatState, dispatchSeatState] = useReducer(seatReducer, {
-    selectedSeats: [],
-    purchasedSeats: []
-  });
+
+
+  const [seatState, dispatchSeatState] = useReducer(seatReducer, {}); 
+
   const seatsPerSection = 60;
-  
+
+  const [selectedMovie, setSelectedMovie] = useState(null);
+
+  const handleMovieChange = (e) => {
+    const movieId = e.target.value;
+    setSelectedMovie(movieId);
+
+    if (!seatState[movieId]) {
+      dispatchSeatState({ type: "resetSeats", movieId });
+    }
+  };
+
   const movielist = useQuery({
     queryKey: ["movie"],
     queryFn: fetchPopularMovies,
@@ -162,8 +172,8 @@ const TicketBooking = () => {
         <h2>Please sign in to book tickets.</h2>
       </Container>
     );
-  }  
-  
+  }
+
   return (
     <Container>
       {movielist.isLoading && <p>Loading Movies...</p>}
@@ -177,7 +187,7 @@ const TicketBooking = () => {
               name="movies"
               onChange={() => {
                 dispatchSeatState({
-                  type: "resetSeats",
+                  type: "resetSeats"
                 });
               }}
             >
@@ -192,44 +202,44 @@ const TicketBooking = () => {
           )}
         </Theater>
         <Theater>
-            <Seats>
-              {Array.from({ length: seatsPerSection }, (_, i) => i + 1).map(
-                (seat) => {
-                  const seatId = `${seat}`;
-                  return (
-                    <SeatButton
-                      key={seatId}
-                      $selected={seatState.selectedSeats.includes(seatId)}
-                      $purchased={seatState.purchasedSeats.includes(seatId)}
-                      onClick={() =>
-                        dispatchSeatState({
-                          type: seatState.selectedSeats.includes(seatId)
-                            ? "toggleOff"
-                            : "toggleOn",
-                          value: seatId
-                        })
-                      }
-                    >
-                      {seatId}
-                    </SeatButton>
-                  );
-                }
-              )}
-            </Seats>
-            <SelectedSeatsContainer>
-              <h3>Selected Seats:</h3>
-<SelectedSeatsList>
-                {seatState.selectedSeats.length > 0
-                  ? seatState.selectedSeats.join(", ")
-                  : "None"}
-        </SelectedSeatsList>
-        <BuyTicketsButton
-                onClick={() => dispatchSeatState({ type: "purchase" })}
-                disabled={seatState.selectedSeats.length === 0}
-              >
-                Buy Tickets
-        </BuyTicketsButton>
-            </SelectedSeatsContainer>
+          <Seats>
+            {Array.from({ length: seatsPerSection }, (_, i) => i + 1).map(
+              (seat) => {
+                const seatId = `${seat}`;
+                return (
+                  <SeatButton
+                    key={seatId}
+                    $selected={seatState.selectedSeats.includes(seatId)}
+                    $purchased={seatState.purchasedSeats.includes(seatId)}
+                    onClick={() =>
+                      dispatchSeatState({
+                        type: seatState.selectedSeats.includes(seatId)
+                          ? "toggleOff"
+                          : "toggleOn",
+                        value: seatId
+                      })
+                    }
+                  >
+                    {seatId}
+                  </SeatButton>
+                );
+              }
+            )}
+          </Seats>
+          <SelectedSeatsContainer>
+            <h3>Selected Seats:</h3>
+            <SelectedSeatsList>
+              {seatState.selectedSeats.length > 0
+                ? seatState.selectedSeats.join(", ")
+                : "None"}
+            </SelectedSeatsList>
+            <BuyTicketsButton
+              onClick={() => dispatchSeatState({ type: "purchase" })}
+              disabled={seatState.selectedSeats.length === 0}
+            >
+              Buy Tickets
+            </BuyTicketsButton>
+          </SelectedSeatsContainer>
         </Theater>
       </Grid>
     </Container>
