@@ -1,25 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { useContext, useReducer, useState } from "react";
 import styled from "styled-components";
-import { SignInContext } from "../../Context/SignInStatusProvider";
+import { SignInContext, MovieSeatsContext } from "../../Context/GlobalProvider";
 
 // Styled Components
 const Container = styled.div`
   padding: 20px;
   font-family: Arial, sans-serif;
 `;
-const Select = styled.select`
-  display: block;
-  margin-bottom: 20px;
-  padding: 10px;
-  font-size: 16px;
-`;
+
 const Grid = styled.div`
   display: flex;
   flex-direction: row;
   gap: 20px;
   align-items: flex-start;
 `;
+
 const Theater = styled.div`
   display: flex;
   flex-direction: column;
@@ -28,6 +24,15 @@ const Theater = styled.div`
   gap: 10px;
   margin-top: 20px;
 `;
+
+const Select = styled.select`
+  display: block;
+  margin-bottom: 20px;
+  padding: 10px;
+  font-size: 16px;
+`;
+
+const Option = styled.option``;
 
 const Seats = styled.div`
   display: grid;
@@ -60,19 +65,16 @@ const SeatButton = styled.button`
 
 const SelectedSeatsContainer = styled.div`
   margin-top: 15px;
-  display : flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
   text-align: center;
-  gap:10px;
+  gap: 10px;
 `;
 
 const SelectedSeatsList = styled.div`
   font-size: 16px;
 `;
-const H3=styled.h3`
-  margin:0;
 
-`
 const BuyTicketsButton = styled.button`
   padding: 10px 20px;
   background-color: #3498db;
@@ -87,13 +89,11 @@ const BuyTicketsButton = styled.button`
     cursor: not-allowed;
   }
 `;
-const Option = styled.option``;
 
 const seatReducer = (seatState, action) => {
   switch (action.type) {
     case "resetSeats":
-      
-      return { selectedSeats: [], purchasedSeats: [] };
+      return { selectedSeats: [], purchasedSeats: action.moviePurchasedSeats };
     case "toggleOn":
       if (!seatState.selectedSeats.includes(action.value)) {
         return {
@@ -111,7 +111,6 @@ const seatReducer = (seatState, action) => {
       };
     case "purchase":
       return {
-        ...seatState,
         purchasedSeats: [
           ...seatState.purchasedSeats,
           ...seatState.selectedSeats
@@ -125,6 +124,7 @@ const seatReducer = (seatState, action) => {
 
 const fetchPopularMovies = async () => {
   const url = `https://api.themoviedb.org/3/movie/popular?language=en-US&page=1}`;
+
   const options = {
     method: "GET",
     headers: {
@@ -145,24 +145,28 @@ const fetchPopularMovies = async () => {
 
 const TicketBooking = () => {
   const { signInState } = useContext(SignInContext);
+  const { movieSeats, setMovieSeats } = useContext(MovieSeatsContext);
   const [seatState, dispatchSeatState] = useReducer(seatReducer, {
     selectedSeats: [],
     purchasedSeats: []
   });
+  const [movieid, setMovieId] = useState("");
+  const seatsPerSection = 60;
+
   const movielist = useQuery({
     queryKey: ["movie"],
     queryFn: fetchPopularMovies,
     enabled: true
   });
-  const [movieSeats,setMovieSeats]=useState(new Map());
-  const [movieid,setMovieId]=useState('');
-  const seatsPerSection = 60;
-  
-  const updateSetMovieSeats=()=>{
-    const newMap=new Map(movieSeats);
-    newMap.set(movieid,[...seatState.purchasedSeats]);
+
+  const updateSetMovieSeats = () => {
+    const newMap = new Map(movieSeats);
+    newMap.set(movieid, [
+      ...seatState.purchasedSeats,
+      ...seatState.selectedSeats
+    ]);
     setMovieSeats(newMap);
-  }
+  };
 
   if (signInState.action === "LogIn") {
     return (
@@ -170,10 +174,8 @@ const TicketBooking = () => {
         <h2>Please sign in to book tickets.</h2>
       </Container>
     );
-  }  
-  console.log(movieSeats);
-  console.log(movieid);
-  console.log(seatState.purchasedSeats);
+  }
+
   return (
     <Container>
       {movielist.isLoading && <p>Loading Movies...</p>}
@@ -185,15 +187,18 @@ const TicketBooking = () => {
           movielist.data.results.length > 0 ? (
             <Select
               name="movies"
+              value={movieid || ""}
               onChange={(e) => {
                 setMovieId(e.target.value);
                 dispatchSeatState({
                   type: "resetSeats",
-                  moviePurchasedSeats:movieSeats.has(movieid)?movieSeats.get(movieid):[]
+                  moviePurchasedSeats: movieSeats.get(e.target.value) || []
                 });
               }}
             >
-              <Option></Option>
+              <Option value="" disabled>
+                Select a movie
+              </Option>
               {movielist.data.results.map((movie) => (
                 <Option key={movie.id} value={movie.id}>
                   {movie.title}
@@ -204,7 +209,8 @@ const TicketBooking = () => {
             !movielist.isLoading && <p>No movies found.</p>
           )}
         </Theater>
-        <Theater>
+        {movieid !== "" ? (
+          <Theater>
             <Seats>
               {Array.from({ length: seatsPerSection }, (_, i) => i + 1).map(
                 (seat) => {
@@ -231,19 +237,25 @@ const TicketBooking = () => {
             </Seats>
             <SelectedSeatsContainer>
               <h3>Selected Seats:</h3>
-        <SelectedSeatsList>
+              <SelectedSeatsList>
                 {seatState.selectedSeats.length > 0
                   ? seatState.selectedSeats.join(", ")
                   : "None"}
-        </SelectedSeatsList>
-        <BuyTicketsButton
-                onClick={() =>{ dispatchSeatState({ type: "purchase" });updateSetMovieSeats();}}
+              </SelectedSeatsList>
+              <BuyTicketsButton
+                onClick={() => {
+                  dispatchSeatState({ type: "purchase" });
+                  updateSetMovieSeats();
+                }}
                 disabled={seatState.selectedSeats.length === 0}
               >
                 Buy Tickets
-        </BuyTicketsButton>
+              </BuyTicketsButton>
             </SelectedSeatsContainer>
-        </Theater>
+          </Theater>
+        ) : (
+          <Theater></Theater>
+        )}
       </Grid>
     </Container>
   );

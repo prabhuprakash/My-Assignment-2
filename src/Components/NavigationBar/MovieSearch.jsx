@@ -104,6 +104,7 @@ const GridItem = styled.div`
 
 const MovieSearch = () => {
   const [moviename, setMoviename] = useState("");
+
   const options = {
     method: "GET",
     headers: {
@@ -112,16 +113,19 @@ const MovieSearch = () => {
         "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNTUyZWMyMGZlOWUxYTkzMzIzOTQwNzFmMzg2YTNmOCIsIm5iZiI6MTczNDc1MjI1Ny4xMzQsInN1YiI6IjY3NjYzODAxNmNlYmE4MjliOTc0YjQyMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.s8XtBP1-lD9E6BgnaruBBzKWU92bQI_weSQNhDvX7a8"
     }
   };
+
   const fetchMovies = async () => {
     const url = `https://api.themoviedb.org/3/search/movie?query=${moviename}&include_adult=false&language=en-US&page=1`;
     const fetchedmoviesdata = await fetch(url, options);
     return await fetchedmoviesdata.json();
   };
+
   const movielist = useQuery({
     queryKey: ["movie", moviename],
     queryFn: fetchMovies,
     enabled: moviename !== ""
   });
+
   return (
     <>
       <InputFields>

@@ -9,6 +9,7 @@ const Nav = styled.nav`
   padding: 15px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
+
 const Button = styled.button`
   background-color: ${(props) => (props.$isactive ? "#ffffff" : "transparent")};
   color: ${(props) => (props.$isactive ? "#4caf50" : "#ffffff")};
@@ -18,6 +19,7 @@ const Button = styled.button`
     transform: scale(1.25);
   }
 `;
+
 const NavigationBar = () => {
   const navigate = useNavigate();
   const location = useLocation();

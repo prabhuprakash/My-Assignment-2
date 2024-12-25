@@ -72,18 +72,18 @@ const GridItem = styled.div`
   color: #555;
 `;
 
-const PopularMovies = () => {
-  const pagereducer = (pageNumber, action) => {
-    switch (action.type) {
-      case "nextPage":
-        return { count: pageNumber.count + 1 };
-      case "previousPage":
-        return { count: pageNumber.count > 1 ? pageNumber.count - 1 : 1 };
-      default:
-        return pageNumber;
-    }
-  };
+const pagereducer = (pageNumber, action) => {
+  switch (action.type) {
+    case "nextPage":
+      return { count: pageNumber.count + 1 };
+    case "previousPage":
+      return { count: pageNumber.count > 1 ? pageNumber.count - 1 : 1 };
+    default:
+      return pageNumber;
+  }
+};
 
+const PopularMovies = () => {
   const [pageNumber, dispatchPageNumber] = useReducer(pagereducer, {
     count: 1
   });
