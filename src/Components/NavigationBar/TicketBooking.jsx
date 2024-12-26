@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { useContext, useReducer, useState } from "react";
+import { useContext, useEffect, useReducer, useState } from "react";
 import styled from "styled-components";
-import { SignInContext, MovieSeatsContext } from "../../Context/GlobalProvider";
+import { SignInContext} from "../../Context/GlobalProvider";
+import { useLocation } from "react-router-dom";
 
 // Styled Components
 const Container = styled.div`
@@ -145,14 +146,25 @@ const fetchPopularMovies = async () => {
 
 const TicketBooking = () => {
   const { signInState } = useContext(SignInContext);
-  const { movieSeats, setMovieSeats } = useContext(MovieSeatsContext);
+  //const { movieSeats, setMovieSeats } = useContext(MovieSeatsContext);
   const [seatState, dispatchSeatState] = useReducer(seatReducer, {
     selectedSeats: [],
     purchasedSeats: []
   });
-  const [movieid, setMovieId] = useState("");
+  const location =useLocation();
+  console.log(location.state);
+  console.log(location.state.movieid);
+  const [movieid, setMovieId] = useState(location.state.movieid);
   const seatsPerSection = 60;
-
+  useEffect(() => {
+    if (movieid) {
+      dispatchSeatState({
+        type: "resetSeats",
+        //moviePurchasedSeats: movieSeats.get(`${movieid}`)||[],
+        moviePurchasedSeats: JSON.parse(localStorage.getItem(`${movieid}`))||[],
+      });
+    }
+  }, [movieid]);
   const movielist = useQuery({
     queryKey: ["movie"],
     queryFn: fetchPopularMovies,
@@ -160,12 +172,13 @@ const TicketBooking = () => {
   });
 
   const updateSetMovieSeats = () => {
-    const newMap = new Map(movieSeats);
+    localStorage.setItem(`${movieid}`,JSON.stringify([...seatState.purchasedSeats,...seatState.selectedSeats]));
+    /*const newMap = new Map(movieSeats);
     newMap.set(movieid, [
       ...seatState.purchasedSeats,
       ...seatState.selectedSeats
     ]);
-    setMovieSeats(newMap);
+    setMovieSeats(newMap);*/
   };
 
   if (signInState.action === "LogIn") {
@@ -192,7 +205,8 @@ const TicketBooking = () => {
                 setMovieId(e.target.value);
                 dispatchSeatState({
                   type: "resetSeats",
-                  moviePurchasedSeats: movieSeats.get(e.target.value) || []
+                  //moviePurchasedSeats: movieSeats.get(e.target.value) || []
+                  moviePurchasedSeats: JSON.parse(localStorage.getItem(`${e.target.value}`)) || []
                 });
               }}
             >
