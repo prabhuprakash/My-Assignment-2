@@ -30,7 +30,7 @@ const NavigationBar = () => {
           }}
           $isactive={location.pathname === "/"}
         >
-          Movie Search
+          Popular Movies
         </Button>
         <Button
           onClick={() => {

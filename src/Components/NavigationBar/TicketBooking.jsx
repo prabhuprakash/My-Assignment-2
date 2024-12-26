@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { useContext, useReducer } from "react";
+import { useContext, useReducer, useState } from "react";
 import styled from "styled-components";
 import { SignInContext } from "../../Context/SignInStatusProvider";
 
-// Styled Components
 const Container = styled.div`
   padding: 20px;
   font-family: Arial, sans-serif;
@@ -54,25 +53,23 @@ const SeatButton = styled.button`
 
   &:hover {
     background-color: ${(props) =>
-      props.purchased ? "#c0392b" : props.$selected ? "#27ae60" : "#95a5a6"};
+      props.$purchased ? "#c0392b" : props.$selected ? "#27ae60" : "#95a5a6"};
   }
 `;
 
 const SelectedSeatsContainer = styled.div`
   margin-top: 15px;
-  display : flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
   text-align: center;
-  gap:10px;
+  gap: 10px;
 `;
 
 const SelectedSeatsList = styled.div`
   font-size: 16px;
 `;
-const H3=styled.h3`
-  margin:0;
 
-`
+
 const BuyTicketsButton = styled.button`
   padding: 10px 20px;
   background-color: #3498db;
@@ -87,38 +84,50 @@ const BuyTicketsButton = styled.button`
     cursor: not-allowed;
   }
 `;
+
 const Option = styled.option``;
 
-const seatReducer = (seatState, action) => {
+const seatReducer = (state, action) => {
   switch (action.type) {
     case "resetSeats":
-      return { selectedSeats: [], purchasedSeats: [] };
+      return {
+        ...state,
+        [action.movieId]: { selectedSeats: [], purchasedSeats: [] }
+      };
     case "toggleOn":
-      if (!seatState.selectedSeats.includes(action.value)) {
-        return {
-          ...seatState,
-          selectedSeats: [...seatState.selectedSeats, action.value]
-        };
-      }
-      return seatState;
+      return {
+        ...state,
+        [action.movieId]: {
+          ...state[action.movieId],
+          selectedSeats: [
+            ...(state[action.movieId]?.selectedSeats || []),
+            action.value
+          ]
+        }
+      };
     case "toggleOff":
       return {
-        ...seatState,
-        selectedSeats: seatState.selectedSeats.filter(
-          (seat) => seat !== action.value
-        )
+        ...state,
+        [action.movieId]: {
+          ...state[action.movieId],
+          selectedSeats: (state[action.movieId]?.selectedSeats || []).filter(
+            (seat) => seat !== action.value
+          )
+        }
       };
     case "purchase":
       return {
-        ...seatState,
-        purchasedSeats: [
-          ...seatState.purchasedSeats,
-          ...seatState.selectedSeats
-        ],
-        selectedSeats: []
+        ...state,
+        [action.movieId]: {
+          selectedSeats: [],
+          purchasedSeats: [
+            ...(state[action.movieId]?.purchasedSeats || []),
+            ...(state[action.movieId]?.selectedSeats || [])
+          ]
+        }
       };
     default:
-      return seatState;
+      return state;
   }
 };
 
@@ -129,7 +138,7 @@ const fetchPopularMovies = async () => {
     headers: {
       accept: "application/json",
       Authorization:
-        "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNTUyZWMyMGZlOWUxYTkzMzIzOTQwNzFmMzg2YTNmOCIsIm5iZiI6MTczNDc1MjI1Ny4xMzQsInN1YiI6IjY3NjYzODAxNmNlYmE4MjliOTc0YjQyMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.s8XtBP1-lD9E6BgnaruBBzKWU92bQI_weSQNhDvX7a8" // Replace 'YOUR_API_KEY' with your actual API key
+        "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNTUyZWMyMGZlOWUxYTkzMzIzOTQwNzFmMzg2YTNmOCIsIm5iZiI6MTczNDc1MjI1Ny4xMzQsInN1YiI6IjY3NjYzODAxNmNlYmE4MjliOTc0YjQyMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.s8XtBP1-lD9E6BgnaruBBzKWU92bQI_weSQNhDvX7a8"
     }
   };
 
@@ -144,12 +153,10 @@ const fetchPopularMovies = async () => {
 
 const TicketBooking = () => {
   const { signInState } = useContext(SignInContext);
-  const [seatState, dispatchSeatState] = useReducer(seatReducer, {
-    selectedSeats: [],
-    purchasedSeats: []
-  });
+  const [seatStates, dispatchSeatStates] = useReducer(seatReducer, {});
+  const [selectedMovie, setSelectedMovie] = useState(null);
   const seatsPerSection = 60;
-  
+
   const movielist = useQuery({
     queryKey: ["movie"],
     queryFn: fetchPopularMovies,
@@ -162,8 +169,8 @@ const TicketBooking = () => {
         <h2>Please sign in to book tickets.</h2>
       </Container>
     );
-  }  
-  
+  }
+
   return (
     <Container>
       {movielist.isLoading && <p>Loading Movies...</p>}
@@ -175,12 +182,20 @@ const TicketBooking = () => {
           movielist.data.results.length > 0 ? (
             <Select
               name="movies"
-              onChange={() => {
-                dispatchSeatState({
-                  type: "resetSeats",
-                });
+              onChange={(e) => {
+                const movieId = e.target.value;
+                setSelectedMovie(movieId);
+                if (!seatStates[movieId]) {
+                  dispatchSeatStates({
+                    type: "resetSeats",
+                    movieId: movieId
+                  });
+                }
               }}
             >
+              <Option value="" disabled>
+                Select a Movie
+              </Option>
               {movielist.data.results.map((movie) => (
                 <Option key={movie.id} value={movie.id}>
                   {movie.title}
@@ -192,21 +207,28 @@ const TicketBooking = () => {
           )}
         </Theater>
         <Theater>
+          {selectedMovie && (
             <Seats>
               {Array.from({ length: seatsPerSection }, (_, i) => i + 1).map(
                 (seat) => {
                   const seatId = `${seat}`;
+                  const movieState = seatStates[selectedMovie] || {
+                    selectedSeats: [],
+                    purchasedSeats: []
+                  };
+
                   return (
                     <SeatButton
                       key={seatId}
-                      $selected={seatState.selectedSeats.includes(seatId)}
-                      $purchased={seatState.purchasedSeats.includes(seatId)}
+                      $selected={movieState.selectedSeats.includes(seatId)}
+                      $purchased={movieState.purchasedSeats.includes(seatId)}
                       onClick={() =>
-                        dispatchSeatState({
-                          type: seatState.selectedSeats.includes(seatId)
+                        dispatchSeatStates({
+                          type: movieState.selectedSeats.includes(seatId)
                             ? "toggleOff"
                             : "toggleOn",
-                          value: seatId
+                          value: seatId,
+                          movieId: selectedMovie
                         })
                       }
                     >
@@ -216,20 +238,27 @@ const TicketBooking = () => {
                 }
               )}
             </Seats>
-            <SelectedSeatsContainer>
-              <h3>Selected Seats:</h3>
-<SelectedSeatsList>
-                {seatState.selectedSeats.length > 0
-                  ? seatState.selectedSeats.join(", ")
-                  : "None"}
-        </SelectedSeatsList>
-        <BuyTicketsButton
-                onClick={() => dispatchSeatState({ type: "purchase" })}
-                disabled={seatState.selectedSeats.length === 0}
-              >
-                Buy Tickets
-        </BuyTicketsButton>
-            </SelectedSeatsContainer>
+          )}
+          <SelectedSeatsContainer>
+            <h3>Selected Seats:</h3>
+            <SelectedSeatsList>
+              {selectedMovie &&
+              seatStates[selectedMovie]?.selectedSeats?.length > 0
+                ? seatStates[selectedMovie].selectedSeats.join(", ")
+                : "None"}
+            </SelectedSeatsList>
+            <BuyTicketsButton
+              onClick={() =>
+                dispatchSeatStates({ type: "purchase", movieId: selectedMovie })
+              }
+              disabled={
+                !selectedMovie ||
+                !seatStates[selectedMovie]?.selectedSeats?.length
+              }
+            >
+              Buy Tickets
+            </BuyTicketsButton>
+          </SelectedSeatsContainer>
         </Theater>
       </Grid>
     </Container>
