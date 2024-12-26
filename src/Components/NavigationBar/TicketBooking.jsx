@@ -69,9 +69,6 @@ const SelectedSeatsList = styled.div`
   font-size: 16px;
 `;
 
-const H3 = styled.h3`
-  margin: 0;
-`;
 
 const BuyTicketsButton = styled.button`
   padding: 10px 20px;
@@ -196,6 +193,9 @@ const TicketBooking = () => {
                 }
               }}
             >
+              <Option value="" disabled>
+                Select a Movie
+              </Option>
               {movielist.data.results.map((movie) => (
                 <Option key={movie.id} value={movie.id}>
                   {movie.title}
@@ -252,7 +252,8 @@ const TicketBooking = () => {
                 dispatchSeatStates({ type: "purchase", movieId: selectedMovie })
               }
               disabled={
-                !selectedMovie || !seatStates[selectedMovie]?.selectedSeats?.length
+                !selectedMovie ||
+                !seatStates[selectedMovie]?.selectedSeats?.length
               }
             >
               Buy Tickets

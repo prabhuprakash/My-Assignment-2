@@ -1,14 +1,15 @@
 import { createBrowserRouter } from "react-router-dom";
-import MovieSearch from "../NavigationBar/MovieSearch";
+
 import NavigationBar from "../NavigationBar/NavigationBar";
 import TicketBooking from "../NavigationBar/TicketBooking";
+import PopularMovies from "../NavigationBar/PopularMovies";
 const router = createBrowserRouter([
   {
     path: "/",
     element: <NavigationBar />,
     children: [
-      { index: true, element: <MovieSearch /> },
-      { path: "TicketBooking", element: <TicketBooking /> }
+      { index: true, element: <PopularMovies /> },
+      { path: "/TicketBooking", element: <TicketBooking /> }
     ]
   }
 ]);
