@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useContext, useEffect, useReducer, useState } from "react";
 import styled from "styled-components";
-import { SignInContext} from "../../Context/GlobalProvider";
+import { SignInContext } from "../../Context/GlobalProvider";
 import { useLocation } from "react-router-dom";
 
 // Styled Components
@@ -151,7 +151,7 @@ const TicketBooking = () => {
     selectedSeats: [],
     purchasedSeats: []
   });
-  const location =useLocation();
+  const location = useLocation();
   console.log(location.state);
   console.log(location.state.movieid);
   const [movieid, setMovieId] = useState(location.state.movieid);
@@ -161,7 +161,8 @@ const TicketBooking = () => {
       dispatchSeatState({
         type: "resetSeats",
         //moviePurchasedSeats: movieSeats.get(`${movieid}`)||[],
-        moviePurchasedSeats: JSON.parse(localStorage.getItem(`${movieid}`))||[],
+        moviePurchasedSeats:
+          JSON.parse(localStorage.getItem(`${movieid}`)) || []
       });
     }
   }, [movieid]);
@@ -172,7 +173,10 @@ const TicketBooking = () => {
   });
 
   const updateSetMovieSeats = () => {
-    localStorage.setItem(`${movieid}`,JSON.stringify([...seatState.purchasedSeats,...seatState.selectedSeats]));
+    localStorage.setItem(
+      `${movieid}`,
+      JSON.stringify([...seatState.purchasedSeats, ...seatState.selectedSeats])
+    );
     /*const newMap = new Map(movieSeats);
     newMap.set(movieid, [
       ...seatState.purchasedSeats,
@@ -206,7 +210,8 @@ const TicketBooking = () => {
                 dispatchSeatState({
                   type: "resetSeats",
                   //moviePurchasedSeats: movieSeats.get(e.target.value) || []
-                  moviePurchasedSeats: JSON.parse(localStorage.getItem(`${e.target.value}`)) || []
+                  moviePurchasedSeats:
+                    JSON.parse(localStorage.getItem(`${e.target.value}`)) || []
                 });
               }}
             >

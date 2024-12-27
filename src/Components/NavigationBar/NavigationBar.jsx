@@ -36,7 +36,7 @@ const NavigationBar = () => {
         </Button>
         <Button
           onClick={() => {
-            navigate("/TicketBooking",{state:{movieid:""}});
+            navigate("/TicketBooking", { state: { movieid: "" } });
           }}
           $isactive={location.pathname === "/TicketBooking"}
         >

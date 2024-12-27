@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useReducer,useState } from "react";
-import styled,{ keyframes } from "styled-components";
+import { useEffect, useReducer, useState } from "react";
+import styled, { keyframes } from "styled-components";
 
 const TextInputFields = styled.div`
   display: flex;
@@ -51,9 +51,11 @@ const spin = keyframes`
   100% { transform: rotate(360deg); }
 `;
 
-const Loader=styled.div`
-  border: ${(props) => (props.$active ? "6px solid #f3f3f3" : "")}; /* Light grey */
-  border-top: ${(props) => (props.$active ? "6px solid #3498db" : "")};/* Blue */
+const Loader = styled.div`
+  border: ${(props) =>
+    props.$active ? "6px solid #f3f3f3" : ""}; /* Light grey */
+  border-top: ${(props) =>
+    props.$active ? "6px solid #3498db" : ""}; /* Blue */
   border-radius: 50%;
   width: 12px;
   height: 12px;
@@ -163,27 +165,28 @@ const PopularMovies = () => {
 
   const [moviename, setMoviename] = useState("");
 
-  const [loadingState,setLoadingState]=useState(false);
-  
+  const [loadingState, setLoadingState] = useState(false);
+
   const options = {
     method: "GET",
     headers: {
       accept: "application/json",
-      Authorization: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNTUyZWMyMGZlOWUxYTkzMzIzOTQwNzFmMzg2YTNmOCIsIm5iZiI6MTczNDc1MjI1Ny4xMzQsInN1YiI6IjY3NjYzODAxNmNlYmE4MjliOTc0YjQyMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.s8XtBP1-lD9E6BgnaruBBzKWU92bQI_weSQNhDvX7a8"
+      Authorization:
+        "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNTUyZWMyMGZlOWUxYTkzMzIzOTQwNzFmMzg2YTNmOCIsIm5iZiI6MTczNDc1MjI1Ny4xMzQsInN1YiI6IjY3NjYzODAxNmNlYmE4MjliOTc0YjQyMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.s8XtBP1-lD9E6BgnaruBBzKWU92bQI_weSQNhDvX7a8"
     }
   };
-  
-    const fetchMovies = async () => {
-      const url = `https://api.themoviedb.org/3/search/movie?query=${moviename}&include_adult=false&language=en-US&page=1`;
-      const fetchedmoviesdata = await fetch(url, options);
-      return await fetchedmoviesdata.json();
-    };
-  
-    const movielistsearch = useQuery({
-      queryKey: ["movie", moviename],
-      queryFn: fetchMovies,
-      enabled: moviename !== ""
-    });
+
+  const fetchMovies = async () => {
+    const url = `https://api.themoviedb.org/3/search/movie?query=${moviename}&include_adult=false&language=en-US&page=1`;
+    const fetchedmoviesdata = await fetch(url, options);
+    return await fetchedmoviesdata.json();
+  };
+
+  const movielistsearch = useQuery({
+    queryKey: ["movie", moviename],
+    queryFn: fetchMovies,
+    enabled: moviename !== ""
+  });
 
   const fetchPopularMovies = async () => {
     const url = `https://api.themoviedb.org/3/movie/popular?language=en-US&page=${pageNumber.count}`;
@@ -213,34 +216,36 @@ const PopularMovies = () => {
 
   return (
     <>
-    <TextInputFields>
+      <TextInputFields>
         <label htmlFor="searchText"> Movie Title : </label>
         <Input
           type="text"
           defaultValue={moviename}
-          onChange={()=>{
-            setLoadingState(true)              
+          onChange={
+            () => {
+              setLoadingState(true);
             }
-            //setLoadingState(true);  
+            //setLoadingState(true);
           }
-          onKeyDown={(e) =>{
-            if(e.key === "Enter") 
-              {setLoadingState(false);setMoviename(e.target.value);}
-            else
-              {console.log(movielistsearch.isLoading)
-                setLoadingState(movielistsearch.isLoading)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              setLoadingState(false);
+              setMoviename(e.target.value);
+            } else {
+              console.log(movielistsearch.isLoading);
+              setLoadingState(movielistsearch.isLoading);
+            }
           }}
           placeholder="movie name"
           id="searchText"
         />
-        <Loader $active={loadingState}/>
+        <Loader $active={loadingState} />
       </TextInputFields>
-    {moviename !== "" ? (
-          
-            movielistsearch.data &&
-            movielistsearch.data.results &&
-            movielistsearch.data.results.length > 0 ? (
-              <OutputField> 
+      {moviename !== "" ? (
+        movielistsearch.data &&
+        movielistsearch.data.results &&
+        movielistsearch.data.results.length > 0 ? (
+          <OutputField>
             <Grid>
               {movielistsearch.data.results.map((movie) => (
                 <GridBlock key={movie.id}>
@@ -257,68 +262,73 @@ const PopularMovies = () => {
                 </GridBlock>
               ))}
             </Grid>
-            </OutputField>
-          ) : (
-            <OutputField>
+          </OutputField>
+        ) : (
+          <OutputField>
             <p>No movies found.</p>
-            </OutputField>
-          )          
-        ) :(
-          <>
-      
-        
-        
-     
-
-      <OutputField>
-        {movielist.data &&
-        movielist.data.results &&
-        movielist.data.results.length > 0 ? (
-          <>
-            <InputFields>
-            <Button
-          onClick={() => {
-            dispatchPageNumber({ type: "previousPage" });
-          }}
-          disabled={pageNumber.count === 1}
-        >
-          Previous Page
-        </Button>
-            <H3>Popular Movies</H3>
-            <Button
-          onClick={() => {
-            dispatchPageNumber({ type: "nextPage" });
-          }}
-        >
-          Next Page
-        </Button>
-        </InputFields>
-            <Grid>
-              {movielist.data.results.map((movie) => (
-                <GridBlock key={movie.id} onClick={()=>{navigate("/TicketBooking",{state:{movieid:`${movie.id}`}})}}>
-                  <GridImg
-                    src={
-                      movie.poster_path
-                        ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
-                        : "https://via.placeholder.com/200x300?text=No+Image"
-                    }
-                    alt={movie.title}
-                  />
-                  <GridItem>{movie.title}</GridItem>
-                  <GridItem>
-                    {movie.release_date
-                      ? movie.release_date.split("-")[0]
-                      : "N/A"}
-                  </GridItem>
-                </GridBlock>
-              ))}
-            </Grid>
-          </>
-        ) : <InputFields><Loader $active={true} />
-        </InputFields>}
-      </OutputField>
-      </>)
-      }
+          </OutputField>
+        )
+      ) : (
+        <>
+          <OutputField>
+            {movielist.data &&
+            movielist.data.results &&
+            movielist.data.results.length > 0 ? (
+              <>
+                <InputFields>
+                  <Button
+                    onClick={() => {
+                      dispatchPageNumber({ type: "previousPage" });
+                    }}
+                    disabled={pageNumber.count === 1}
+                  >
+                    Previous Page
+                  </Button>
+                  <H3>Popular Movies</H3>
+                  <Button
+                    onClick={() => {
+                      dispatchPageNumber({ type: "nextPage" });
+                    }}
+                  >
+                    Next Page
+                  </Button>
+                </InputFields>
+                <Grid>
+                  {movielist.data.results.map((movie) => (
+                    <GridBlock
+                      key={movie.id}
+                      onClick={() => {
+                        navigate("/TicketBooking", {
+                          state: { movieid: `${movie.id}` }
+                        });
+                      }}
+                    >
+                      <GridImg
+                        src={
+                          movie.poster_path
+                            ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
+                            : "https://via.placeholder.com/200x300?text=No+Image"
+                        }
+                        alt={movie.title}
+                      />
+                      <GridItem>{movie.title}</GridItem>
+                      <GridItem>
+                        {movie.release_date
+                          ? movie.release_date.split("-")[0]
+                          : "N/A"}
+                      </GridItem>
+                    </GridBlock>
+                  ))}
+                </Grid>
+              </>
+            ) : (
+              <InputFields>
+                <Loader $active={true} />
+              </InputFields>
+            )}
+          </OutputField>
+        </>
+      )}
     </>
   );
 };
