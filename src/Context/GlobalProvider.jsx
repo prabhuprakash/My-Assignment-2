@@ -1,5 +1,6 @@
-import React, { useReducer } from "react";
+import React, { useReducer, useState } from "react";
 export const SignInContext = React.createContext();
+//export const MovieSeatsContext = React.createContext();
 const SignInContextProvider = ({ children }) => {
   function reducer(signInState, action) {
     switch (action.action) {
@@ -21,4 +22,12 @@ const SignInContextProvider = ({ children }) => {
     </SignInContext.Provider>
   );
 };
+/*export const MovieSeatsContextProvider = ({ children }) => {
+  const [movieSeats, setMovieSeats] = useState(new Map());
+  return (
+    <MovieSeatsContext.Provider value={{ movieSeats, setMovieSeats }}>
+      {children}
+    </MovieSeatsContext.Provider>
+  );
+};*/
 export default SignInContextProvider;
